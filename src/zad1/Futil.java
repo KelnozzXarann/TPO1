@@ -27,9 +27,52 @@ package zad1;
 //
 
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+
 public class Futil {
 
     public static void processDir(String dirName, String resultFileName) {
+        final Path path= Paths.get(dirName);
+        try {
+            Files.walkFileTree(path, new FileVisitor<Path>() {
+                @Override
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                    System.out.println("Jestem w"+dir);
+                    return FileVisitResult.CONTINUE;
+                }
 
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+
+                    FileInputStream is = new FileInputStream(file.toFile());
+                    InputStreamReader isr = new InputStreamReader(is, Charset.forName("CP1250"));
+                    BufferedReader buffReader = new BufferedReader(isr);
+                    String line;
+                    while ((line=buffReader.readLine())!=null){
+                        System.out.println(line);
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

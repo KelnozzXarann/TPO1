@@ -61,6 +61,7 @@ public class Service {
     }
 
     public String getWeather(String town) {
+        String key="appid=9fcc3785df79775aa886fb879bede0a7";
         String json=connect("http://api.openweathermap.org/data/2.5/weather?q=Warsaw&APPID=9fcc3785df79775aa886fb879bede0a7");
 
         return null;
