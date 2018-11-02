@@ -52,29 +52,97 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.util.Currency;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Service {
-    String country;
+    private String country;
+    public Map<String, String> countries;
+    private Currency curr;
+
 
     public Service(String country) {
         this.country=country;
+        Map<String, Locale> countries = new HashMap<>();
+        for (String iso : Locale.getISOCountries()) {
+            Locale l = new Locale("EN", iso);
+            countries.put(l.getDisplayCountry(), l);
+        }
+        curr=Currency.getInstance(countries.get(this.country));
     }
 
     public String getWeather(String town) {
-        String key="appid=9fcc3785df79775aa886fb879bede0a7";
-        String json=connect("http://api.openweathermap.org/data/2.5/weather?q=Warsaw&APPID=9fcc3785df79775aa886fb879bede0a7");
 
+        String url="http://api.openweathermap.org/data/2.5/weather";
+        HashMap<String,String> map=new HashMap<String, String>();
+        map.put("appid","9fcc3785df79775aa886fb879bede0a7");
+        map.put("q",town);
+        String json=connect(createQueryString(url,map));
+        HashMap<String, String> res= new HashMap<>();
+        res.put("main",null);
+        res.put("description",null);
+        res.put("temp",null);
+        res.put("pressure",null);
+        res.put("humidity",null);
+        res.put("temp_min",null);
+        res.put("temp_max",null);
+        res.put("sunrise",null);
+        res.put("sunset",null);
+        res.forEach((k,v)->res.replace(k,getJsonValue(json,k)));
+
+        return json;
+    }
+
+    private String getJsonValue(String json, String key) {
+        Pattern pattern = Pattern.compile("\""+key+"\":\"?((?:\\d+\\.?\\d*)|(?:\\w+\\s?\\w*))");
+        Matcher matcher = pattern.matcher(json);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
         return null;
     }
 
+    private String getNBPValue(String json) {
+        System.out.println("debug");
+        System.out.println(json);
+        System.out.println("<td class=\"bgt\\d right\">(\\d+) ("+curr.getCurrencyCode()+")</td>\\s+<td class=\"bgt\\d right\">(\\d+,?\\d*)");
+        System.out.println("/debug");
+        Pattern pattern = Pattern.compile("<td class=\"bgt\\d right\">(\\d+) ("+curr.getCurrencyCode()+")<\\/td>\\s+<td class=\"bgt\\d right\">(\\d+,?\\d*)");
+        Matcher matcher = pattern.matcher(json);
+        if (matcher.find()) {
+            return matcher.group(1)+" "+ matcher.group(2)+": "+matcher.group(3);
+        }
+        return "Nie znaleziono";
+    }
     public Double getRateFor(String currency) {
 
-        return null;
+        String url="http://data.fixer.io/api/latest";
+        HashMap<String,String> map=new HashMap<String, String>();
+        map.put("access_key","9df2e27eb0a520ec531b377196c8826c");
+        map.put("symbols",curr.getCurrencyCode()+","+currency);
+        String json=connect(createQueryString(url,map));
+        HashMap<String,Double> result=new HashMap<String, Double>();
+        result.put(curr.getCurrencyCode(),null);
+        result.put(currency,null);
+        result.forEach((k,v)->result.replace(k,Double.parseDouble(getJsonValue(json,k))));
+        double rate=result.get(currency)/result.get(curr.getCurrencyCode());
+        System.out.println("1 "+curr.getCurrencyCode()+" = "+rate+" "+currency);
+
+        return rate;
     }
 
     public Double getNBPRate() {
+        String stronaa=connect("http://www.nbp.pl/kursy/kursya.html");
+        stronaa+=connect("http://www.nbp.pl/kursy/kursyb.html");
+        System.out.println(getNBPValue(stronaa));
         return null;
     }
+
+
     private String connect(String conString){
         URL url = null;
         StringBuffer content=null;
@@ -100,5 +168,14 @@ public class Service {
             e.printStackTrace();
         }
         return content.toString();
+    }
+
+    private String createQueryString(String url, Map<String,String> params){
+        StringBuilder result=new StringBuilder();
+        result.append(url).append("?");
+        params.forEach((key,value) -> result.append(key+"="+value+"&"));
+        result.deleteCharAt(result.length()-1);
+        System.out.println(result);
+        return result.toString();
     }
 }
