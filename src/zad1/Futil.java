@@ -27,36 +27,53 @@ package zad1;
 //
 
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
+
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 
 public class Futil {
 
+    private static final String resultFile = System.getProperty("user.dir")+"/";
+
     public static void processDir(String dirName, String resultFileName) {
         final Path path= Paths.get(dirName);
+        final Path outputPath=Paths.get(resultFile+resultFileName);
+        if(Files.exists(outputPath)){
+            try {
+                Files.delete(outputPath);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
         try {
             Files.walkFileTree(path, new FileVisitor<Path>() {
                 @Override
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                    System.out.println("Jestem w"+dir);
                     return FileVisitResult.CONTINUE;
                 }
 
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 
-                    FileInputStream is = new FileInputStream(file.toFile());
-                    InputStreamReader isr = new InputStreamReader(is, Charset.forName("CP1250"));
-                    BufferedReader buffReader = new BufferedReader(isr);
-                    String line;
-                    while ((line=buffReader.readLine())!=null){
-                        System.out.println(line);
-                    }
+                    RandomAccessFile inputFile=new RandomAccessFile(file.toFile(), "r");
+                    FileChannel fc =inputFile.getChannel();
+                    FileChannel fcout =FileChannel.open(outputPath,StandardOpenOption.CREATE,StandardOpenOption.WRITE,StandardOpenOption.APPEND);
+
+                    ByteBuffer buf = ByteBuffer.allocate((int)fc.size());
+                    int bytesRead = fc.read(buf);
+                    buf.flip();
+                    CharBuffer charBuffer = Charset.forName("CP1250").decode(buf);
+                    buf=Charset.forName("UTF-8").encode(charBuffer);
+                    fcout.write(buf);
+                    fcout.close();
+                    fc.close();
                     return FileVisitResult.CONTINUE;
                 }
 
@@ -70,6 +87,7 @@ public class Futil {
                     return FileVisitResult.CONTINUE;
                 }
             });
+
 
         } catch (IOException e) {
             e.printStackTrace();
