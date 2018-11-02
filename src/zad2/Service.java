@@ -61,17 +61,23 @@ import java.util.regex.Pattern;
 
 public class Service {
     private String country;
-    public Map<String, String> countries;
+    public Map<String, Locale> countries;
     private Currency curr;
-
+    private Map<String,String> WeatherMap;
+    private String web;
 
     public Service(String country) {
         this.country=country;
-        Map<String, Locale> countries = new HashMap<>();
+        countries = new HashMap<>();
         for (String iso : Locale.getISOCountries()) {
             Locale l = new Locale("EN", iso);
             countries.put(l.getDisplayCountry(), l);
         }
+        curr=Currency.getInstance(countries.get(this.country));
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
         curr=Currency.getInstance(countries.get(this.country));
     }
 
@@ -82,17 +88,17 @@ public class Service {
         map.put("appid","9fcc3785df79775aa886fb879bede0a7");
         map.put("q",town);
         String json=connect(createQueryString(url,map));
-        HashMap<String, String> res= new HashMap<>();
-        res.put("main",null);
-        res.put("description",null);
-        res.put("temp",null);
-        res.put("pressure",null);
-        res.put("humidity",null);
-        res.put("temp_min",null);
-        res.put("temp_max",null);
-        res.put("sunrise",null);
-        res.put("sunset",null);
-        res.forEach((k,v)->res.replace(k,getJsonValue(json,k)));
+        WeatherMap= new HashMap<>();
+        WeatherMap.put("main",null);
+        WeatherMap.put("description",null);
+        WeatherMap.put("temp",null);
+        WeatherMap.put("pressure",null);
+        WeatherMap.put("humidity",null);
+        WeatherMap.put("temp_min",null);
+        WeatherMap.put("temp_max",null);
+        WeatherMap.put("sunrise",null);
+        WeatherMap.put("sunset",null);
+        WeatherMap.forEach((k,v)->WeatherMap.replace(k,getJsonValue(json,k)));
 
         return json;
     }
@@ -107,10 +113,6 @@ public class Service {
     }
 
     private String getNBPValue(String json) {
-        System.out.println("debug");
-        System.out.println(json);
-        System.out.println("<td class=\"bgt\\d right\">(\\d+) ("+curr.getCurrencyCode()+")</td>\\s+<td class=\"bgt\\d right\">(\\d+,?\\d*)");
-        System.out.println("/debug");
         Pattern pattern = Pattern.compile("<td class=\"bgt\\d right\">(\\d+) ("+curr.getCurrencyCode()+")<\\/td>\\s+<td class=\"bgt\\d right\">(\\d+,?\\d*)");
         Matcher matcher = pattern.matcher(json);
         if (matcher.find()) {
@@ -136,10 +138,22 @@ public class Service {
     }
 
     public Double getNBPRate() {
-        String stronaa=connect("http://www.nbp.pl/kursy/kursya.html");
-        stronaa+=connect("http://www.nbp.pl/kursy/kursyb.html");
-        System.out.println(getNBPValue(stronaa));
+
+        if (web != null && !web.isEmpty()) {
+        }else {
+            web=connect("http://www.nbp.pl/kursy/kursya.html");
+            web+=connect("http://www.nbp.pl/kursy/kursyb.html");
+        }
+        System.out.println(getNBPValue(web));
         return null;
+    }
+    public String getNBPLabel() {
+        if (web != null && !web.isEmpty()) {
+        }else {
+            web=connect("http://www.nbp.pl/kursy/kursya.html");
+            web+=connect("http://www.nbp.pl/kursy/kursyb.html");
+        }
+        return getNBPValue(web);
     }
 
 
@@ -177,5 +191,17 @@ public class Service {
         result.deleteCharAt(result.length()-1);
         System.out.println(result);
         return result.toString();
+    }
+
+    public Map<String, Locale> getCountries() {
+        return countries;
+    }
+
+    public Currency getCurr() {
+        return curr;
+    }
+
+    public Map<String, String> getWeatherMap() {
+        return WeatherMap;
     }
 }
