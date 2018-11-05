@@ -1,11 +1,12 @@
 package zad2;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Currency;
-import java.util.Locale;
-import java.util.Map;
 
 public class gui {
     private JComboBox<String> cbCountry;
@@ -21,33 +22,42 @@ public class gui {
     private JButton openWikiButton;
     private JTextArea taWeather;
     private double rate;
+    NumberFormat numberFormat = new DecimalFormat("######0.00");
 
     public gui(Service s) {
-        JFrame jFrame=new JFrame("App");
+        JFrame jFrame = new JFrame("App");
         jFrame.setContentPane(mainPanel);
         jFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         jFrame.pack();
         jFrame.setVisible(true);
-        s.getCountries().forEach((k,v)->cbCountry.addItem(k));
-        Currency.getAvailableCurrencies().forEach(k->cbCurrency.addItem(k.getCurrencyCode()));
+        s.getCountries().forEach((k, v) -> cbCountry.addItem(k));
+        Currency.getAvailableCurrencies().forEach(k -> cbCurrency.addItem(k.getCurrencyCode()));
+        cbCountry.setSelectedIndex(0);
+        cbCurrency.setSelectedIndex(0);
         cbCountry.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 s.setCountry(cbCountry.getSelectedItem().toString());
-                CurrOrig.setText(s.getCurr().getCurrencyCode()!=null?s.getCurr().getCurrencyCode():"None");
+                CurrOrig.setText(s.getCurr().getCurrencyCode() != null ? s.getCurr().getCurrencyCode() : "None");
                 nbpVal.setText(s.getNBPLabel());
+                rate = s.getRateFor(cbCurrency.getSelectedItem().toString());
+                tfCurrOrig.getActionListeners()[0].actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null) {
+                });
             }
         });
         cbCurrency.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 CurrChosen.setText(cbCurrency.getSelectedItem().toString());
+                rate = s.getRateFor(cbCurrency.getSelectedItem().toString());
+                tfCurrOrig.getActionListeners()[0].actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null) {
+                });
             }
         });
         openWikiButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(inputTown.getText()!=null){
+                if (!inputTown.getText().isEmpty()) {
                     Web.setUrl(inputTown.getText());
                     Web.start();
                 }
@@ -56,16 +66,127 @@ public class gui {
         checkTheWeatherButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(inputTown.getText()!=null){
+                if (!inputTown.getText().isEmpty()) {
                     s.getWeather(inputTown.getText());
-                    StringBuilder text=new StringBuilder();
-                    s.getWeatherMap().forEach((k,v)->text.append(k).append(": ").append(v).append("\r\n"));
+                    StringBuilder text = new StringBuilder();
+                    s.getWeatherMap().forEach((k, v) -> text.append(k).append(": ").append(v).append("\r\n"));
                     taWeather.setText(text.toString());
                 }
             }
         });
         CurrOrig.setText(s.getCurr().getCurrencyCode());
         CurrChosen.setText(cbCurrency.getSelectedItem().toString());
+        tfCurrChosen.setText("1.00");
+        tfCurrOrig.setText("1.00");
 
+        tfCurrOrig.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (rate != 0 && tfCurrChosen.getText() != null && tfCurrChosen.getText() != "") {
+                    double orig = Double.parseDouble(tfCurrOrig.getText());
+                    System.out.println("orig: " + orig + " rate: " + rate + " ch: " + (orig * rate) + " parse " + numberFormat.format(orig * rate));
+                    tfCurrChosen.setText(numberFormat.format(Double.parseDouble(tfCurrOrig.getText()) * rate));
+                } else {
+                    tfCurrOrig.setText("1.00");
+                }
+            }
+        });
+        tfCurrChosen.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (rate != 0 && tfCurrOrig.getText() != null && tfCurrOrig.getText() != "") {
+                    double ch = Double.parseDouble(tfCurrChosen.getText());
+                    System.out.println("ch: " + ch + " rate: " + rate + " orig: " + (ch / rate) + " parse " + numberFormat.format(ch / rate));
+                    tfCurrOrig.setText(numberFormat.format(Double.parseDouble(tfCurrChosen.getText()) / rate));
+                } else {
+                    tfCurrChosen.setText("1.00");
+                }
+            }
+        });
+    }
+
+    {
+// GUI initializer generated by IntelliJ IDEA GUI Designer
+// >>> IMPORTANT!! <<<
+// DO NOT EDIT OR ADD ANY CODE HERE!
+        $$$setupUI$$$();
+    }
+
+    /**
+     * Method generated by IntelliJ IDEA GUI Designer
+     * >>> IMPORTANT!! <<<
+     * DO NOT edit this method OR call it in your code!
+     *
+     * @noinspection ALL
+     */
+    private void $$$setupUI$$$() {
+        mainPanel = new JPanel();
+        mainPanel.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(8, 2, new Insets(0, 0, 0, 0), -1, -1));
+        final JPanel panel1 = new JPanel();
+        panel1.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        mainPanel.add(panel1, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 4, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        final JLabel label1 = new JLabel();
+        label1.setText("Select Country");
+        panel1.add(label1);
+        cbCountry = new JComboBox();
+        final DefaultComboBoxModel defaultComboBoxModel1 = new DefaultComboBoxModel();
+        cbCountry.setModel(defaultComboBoxModel1);
+        panel1.add(cbCountry);
+        final JPanel panel2 = new JPanel();
+        panel2.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        mainPanel.add(panel2, new com.intellij.uiDesigner.core.GridConstraints(5, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        CurrOrig = new JLabel();
+        CurrOrig.setText("Label");
+        panel2.add(CurrOrig);
+        tfCurrOrig = new JTextField();
+        tfCurrOrig.setColumns(10);
+        tfCurrOrig.putClientProperty("caretWidth", new Integer(20));
+        panel2.add(tfCurrOrig);
+        CurrChosen = new JLabel();
+        CurrChosen.setText("Label");
+        panel2.add(CurrChosen);
+        tfCurrChosen = new JTextField();
+        tfCurrChosen.setColumns(10);
+        tfCurrChosen.putClientProperty("caretWidth", new Integer(20));
+        panel2.add(tfCurrChosen);
+        final JPanel panel3 = new JPanel();
+        panel3.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        mainPanel.add(panel3, new com.intellij.uiDesigner.core.GridConstraints(0, 1, 2, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        final JPanel panel4 = new JPanel();
+        panel4.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        panel3.add(panel4);
+        final JLabel label2 = new JLabel();
+        label2.setText("Enter Town to see what is the weather");
+        panel4.add(label2);
+        inputTown = new JTextField();
+        inputTown.putClientProperty("caretWidth", new Integer(20));
+        inputTown.putClientProperty("html.disable", Boolean.FALSE);
+        panel4.add(inputTown);
+        final JPanel panel5 = new JPanel();
+        panel5.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        mainPanel.add(panel5, new com.intellij.uiDesigner.core.GridConstraints(4, 1, 3, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        taWeather = new JTextArea();
+        panel5.add(taWeather);
+        final JPanel panel6 = new JPanel();
+        panel6.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        mainPanel.add(panel6, new com.intellij.uiDesigner.core.GridConstraints(6, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        nbpVal = new JLabel();
+        nbpVal.setText("");
+        panel6.add(nbpVal);
+        cbCurrency = new JComboBox();
+        mainPanel.add(cbCurrency, new com.intellij.uiDesigner.core.GridConstraints(4, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        checkTheWeatherButton = new JButton();
+        checkTheWeatherButton.setText("Check the weather");
+        mainPanel.add(checkTheWeatherButton, new com.intellij.uiDesigner.core.GridConstraints(2, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        openWikiButton = new JButton();
+        openWikiButton.setText("Open Wiki");
+        mainPanel.add(openWikiButton, new com.intellij.uiDesigner.core.GridConstraints(3, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    public JComponent $$$getRootComponent$$$() {
+        return mainPanel;
     }
 }

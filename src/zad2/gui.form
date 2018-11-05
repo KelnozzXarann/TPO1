@@ -44,7 +44,9 @@
           </component>
           <component id="c8432" class="javax.swing.JTextField" binding="tfCurrOrig">
             <constraints/>
-            <properties/>
+            <properties>
+              <columns value="10"/>
+            </properties>
             <clientProperties>
               <caretWidth class="java.lang.Integer" value="20"/>
             </clientProperties>
@@ -57,7 +59,9 @@
           </component>
           <component id="36b7f" class="javax.swing.JTextField" binding="tfCurrChosen">
             <constraints/>
-            <properties/>
+            <properties>
+              <columns value="10"/>
+            </properties>
             <clientProperties>
               <caretWidth class="java.lang.Integer" value="20"/>
             </clientProperties>
